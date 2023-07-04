@@ -11,7 +11,20 @@
       "48": "assets/ext-icon.png"
     },
     "action": {
-      "default_popup": "popup.html"
-    }
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "assets/ext-icon.png",
+        "48": "assets/ext-icon.png"
+      }
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": ["*://*/*"],
+        "js": ["script.js"]
+      }
+    ]
   }
   

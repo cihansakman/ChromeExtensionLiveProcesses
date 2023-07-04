@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     //First get the current tab id using tabs API
     //Then get the corresponding process id for these tab to understand which tab is currently active
-    function getCurrentTab(callback) {
+    function getCurrentTabProcessId(callback) {
       chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
         chrome.processes.getProcessIdForTab(tabs[0].id, (currentProcessId) => {
             const currentTabId = currentProcessId;
@@ -11,10 +11,34 @@ document.addEventListener('DOMContentLoaded', function() {
         
       });
     }
+
+    function getCurrentTabId(callback){
+      chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+            const currentTabId = tabs[0].id;
+            callback(currentTabId);     
+      });
+    }
     
-  
     //Get the processes information livevly using Chrome Processes API
     chrome.processes.onUpdatedWithMemory.addListener(processes => {
+
+
+      getCurrentTabId(currentTabId => {
+        chrome.tabs.sendMessage(currentTabId, 
+          message = {
+          type: "PROCESSES",
+          processes: processes,
+          message: "Processes recieved"
+    
+        },
+        );
+      });
+
+
+     
+  
+
+     
         
       const tabList = document.getElementById('tabList');
       tabList.innerHTML = ''; // Clear the list before updating
@@ -33,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
           taskCell.textContent = process.tasks && process.tasks[0] && process.tasks[0].title;
           cpu.textContent = (Math.round(parseFloat(process.cpu) * 100) / 100).toFixed(2); 
   
-          getCurrentTab(currentTab => {
+          getCurrentTabProcessId(currentTab => {
             if (currentTab == process.id) {
               row.style.backgroundColor = '#f5d742';
               activeCell.textContent = 'Active';
@@ -53,4 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+
   
