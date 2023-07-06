@@ -43,22 +43,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 */
 
 
-let isEnabled = true;
-
-chrome.action.onClicked.addListener(tab => {
-  isEnabled = !isEnabled;
-
-  // Toggle the icon based on the extension's enabled/disabled state
-  const iconPath = isEnabled ? "assets/ext-icon.png" : "assets/play.png";
-  chrome.action.setIcon({ path: iconPath });
-
-  // Enable or disable the extension based on the state
-  if (isEnabled) {
-    chrome.action.enable(tab.id);
-  } else {
-    chrome.action.disable(tab.id);
-  }
-});
 
 function getCurrentTabId(callback) {
   chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
@@ -77,8 +61,17 @@ function sendProcessesToContentScript(processes) {
   });
 }
 
+
+//Send the process info if isEnabled true.
+//In the future, we can add a send info button to send processes if only user clicks the button.
+let isEnabled = true;
+let counter = 0;
+
 chrome.processes.onUpdatedWithMemory.addListener(processes => {
-  if (isEnabled) {
+  counter++;
+
+  //Send message in every 30secs
+  if (isEnabled && (counter % 30 === 0 || counter == 0)) {
     sendProcessesToContentScript(processes);
   }
 });
