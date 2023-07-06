@@ -56,15 +56,34 @@ socketServer.listen(3002, function(){
 
 /* This event will emit when client connects to the socket server */
 io.on('connection', function(socket){
-  console.log('Socket connection established');
 
-  // Event handler for custom event from client
-  socket.on('customEvent', function(data) {
-    console.log('Received data from client:', data);
-    
+    console.log('a user connected');
+    socket.on('disconnect', () => {
+      console.log('user disconnected');
+    });
+
+    // Event handler for custom event from client
+    socket.on('customEvent', (data) => {
+    console.log('Received data from client:', data.message);
+      
     // Emit a response back to the client
     socket.emit('customEventResponse', { message: 'Hello from server' });
+
   });
+
+  //When client send processes
+  socket.on('processes', (arg)=>{
+    console.log("We got the processes")
+    processes = arg.process
+    for (const [tabId, process] of Object.entries(processes)) {
+      if (process.type === 'renderer' && process.tasks[0].tabId){
+        console.log("Process OS ID: ", process.osProcessId)
+        title = process.tasks && process.tasks[0] && process.tasks[0].title
+        console.log("Process Tab Title: ", title)
+      }
+      
+    }
+  })  
   
 });
 
