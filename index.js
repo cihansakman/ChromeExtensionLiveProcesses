@@ -31,8 +31,9 @@ server.listen(3000, () => {
 */
 
 
-// Socket connection
+let processes_from_chrome = {}
 
+// Socket connection
 /* Creates new HTTP server for socket */
 var socketServer = require('http').createServer(app);
 var io = require('socket.io')(socketServer , {
@@ -58,6 +59,7 @@ socketServer.listen(3002, function(){
 io.on('connection', function(socket){
 
     console.log('a user connected');
+
     socket.on('disconnect', () => {
       console.log('user disconnected');
     });
@@ -71,11 +73,21 @@ io.on('connection', function(socket){
 
   });
 
+  socket.on('message-from-python', (message) => {
+    console.log('Message recieved', message.message)
+
+    // Emit a response back to the client
+    socket.emit('message-to-python', { message: 'I recieved your message Python!' });
+  })
+
   //When client send processes
   socket.on('processes', (arg)=>{
-    console.log("We got the processes")
-    processes = arg.process
-    for (const [tabId, process] of Object.entries(processes)) {
+    
+    console.log("We got the processes\n")
+    processes_data = arg.process
+    processes_from_chrome = processes_data
+
+    for (const [tabId, process] of Object.entries(processes_data)) {
       if (process.type === 'renderer' && process.tasks[0].tabId){
         console.log("Process OS ID: ", process.osProcessId)
         title = process.tasks && process.tasks[0] && process.tasks[0].title
@@ -84,6 +96,13 @@ io.on('connection', function(socket){
       
     }
   })  
+
+
+ // Send processes to Python every 10 seconds
+setInterval(() => {
+  socket.emit('processes-to-python', {processes : processes_from_chrome });
+}, 10000); // 10 seconds
+
   
 });
 
